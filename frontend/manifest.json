@@ -11,7 +11,7 @@
         "128": "images/icon-128.png"
     },
 
-    "permissions": ["tabs", "activeTab", "scripting"],
+    "permissions": ["tabs", "activeTab", "scripting", "storage", "notifications"],
 
     "background": {
         "service_worker": "background.js"
@@ -23,8 +23,8 @@
     },
 
     "host_permissions": [
-        "http://*/*",
-        "https://*/*"
+        "<all_urls>",
+        "http://localhost:3000/*"
     ],
 
     "content_scripts": [

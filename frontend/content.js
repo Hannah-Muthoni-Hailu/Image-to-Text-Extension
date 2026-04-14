@@ -1,15 +1,25 @@
-if (window.__screenshotTooLoaded) {
-    console.log("Alread loaded, skipping...")
+if (window.hasTextCopierLoaded) {
+    // If it's already there, just start the selection process
+    startSelection();
 } else {
-    // Lets user drag a box
-    let startX, startY, box;
+    window.hasTextCopierLoaded = true;
 
     let isSelecting = false;
+    let startX, startY, box;
+
+    // Helper to trigger the cursor/drag logic
+    function startSelection() {
+        isSelecting = true;
+        document.body.style.cursor = "crosshair";
+    }
 
     chrome.runtime.onMessage.addListener((message) => {
         if (message.type === "START_SELECTION") {
-            isSelecting = true;
-            document.body.style.cursor = "crosshair";
+            startSelection()
+        }
+
+        if (message.type === "PROCESS_IMAGE") {
+            processAndSendImage(message);
         }
     });
 
@@ -66,37 +76,83 @@ if (window.__screenshotTooLoaded) {
         document.addEventListener("mouseup", onMouseUp);
     });
 
-    chrome.runtime.onMessage.addListener((message) => {
-        if (message.type === "PROCESS_IMAGE") {
-            const img = new Image();
-            img.src = message.screenshot;
+    // chrome.runtime.onMessage.addListener((message) => {
+    //     if (message.type === "PROCESS_IMAGE") {
+    //         const img = new Image();
+    //         img.src = message.screenshot;
 
-            img.onload = () => {
-                const canvas = document.createElement("canvas");
-                const ctx = canvas.getContext("2d");
+    //         img.onload = async () => {
+    //             const canvas = document.createElement("canvas");
+    //             const ctx = canvas.getContext("2d");
 
-                canvas.width = message.rect.width;
-                canvas.height = message.rect.height;
+    //             canvas.width = message.rect.width;
+    //             canvas.height = message.rect.height;
 
-                ctx.drawImage(
-                    img,
-                    message.rect.x,
-                    message.rect.y,
-                    message.rect.width,
-                    message.rect.height,
-                    0,
-                    0,
-                    message.rect.width,
-                    message.rect.height
-                );
+    //             ctx.drawImage(
+    //                 img,
+    //                 message.rect.x,
+    //                 message.rect.y,
+    //                 message.rect.width,
+    //                 message.rect.height,
+    //                 0,
+    //                 0,
+    //                 message.rect.width,
+    //                 message.rect.height
+    //             );
 
-                const cropped = canvas.toDataURL("image/png");
+    //             const cropped = canvas.toDataURL("image/png");
 
-                const link = document.createElement("a");
-                link.href = cropped;
-                link.download = "cropped.png";
-                link.click();
-            };
-        }
-    });
+    //             // const link = document.createElement("a");
+    //             // link.href = cropped;
+    //             // link.download = "cropped.png";
+    //             // link.click();
+    //             const response = await fetch("http://localhost:3000/process_image", {
+    //                 method: "POST",
+    //                 headers: {
+    //                     "Content-Type": "application/json"
+    //                 },
+    //                 body: JSON.stringify({
+    //                     image: cropped
+    //                 })
+    //             });
+
+    //             const result = await response.text();
+    //             console.log(result);
+
+    //             chrome.runtime.sendMessage({
+    //                 type: "SERVER_RESPONSE_RECEIVED",
+    //                 data: result
+    //             });
+    //         };
+    //     }
+    // });
+
+    async function processAndSendImage(message) {
+        const img = new Image();
+        img.src = message.screenshot;
+
+        img.onload = async () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = message.rect.width;
+            canvas.height = message.rect.height;
+
+            ctx.drawImage(img, message.rect.x, message.rect.y, message.rect.width, message.rect.height, 0, 0, message.rect.width, message.rect.height);
+
+            const cropped = canvas.toDataURL("image/png");
+            
+            const response = await fetch("http://localhost:3000/process_image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ image: cropped })
+            });
+
+            const result = await response.text();
+            
+            chrome.runtime.sendMessage({
+                type: "SERVER_RESPONSE_RECEIVED",
+                data: result
+            });
+        };
+    }
 }
