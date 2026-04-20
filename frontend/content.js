@@ -76,57 +76,6 @@ if (window.hasTextCopierLoaded) {
         document.addEventListener("mouseup", onMouseUp);
     });
 
-    // chrome.runtime.onMessage.addListener((message) => {
-    //     if (message.type === "PROCESS_IMAGE") {
-    //         const img = new Image();
-    //         img.src = message.screenshot;
-
-    //         img.onload = async () => {
-    //             const canvas = document.createElement("canvas");
-    //             const ctx = canvas.getContext("2d");
-
-    //             canvas.width = message.rect.width;
-    //             canvas.height = message.rect.height;
-
-    //             ctx.drawImage(
-    //                 img,
-    //                 message.rect.x,
-    //                 message.rect.y,
-    //                 message.rect.width,
-    //                 message.rect.height,
-    //                 0,
-    //                 0,
-    //                 message.rect.width,
-    //                 message.rect.height
-    //             );
-
-    //             const cropped = canvas.toDataURL("image/png");
-
-    //             // const link = document.createElement("a");
-    //             // link.href = cropped;
-    //             // link.download = "cropped.png";
-    //             // link.click();
-    //             const response = await fetch("http://localhost:3000/process_image", {
-    //                 method: "POST",
-    //                 headers: {
-    //                     "Content-Type": "application/json"
-    //                 },
-    //                 body: JSON.stringify({
-    //                     image: cropped
-    //                 })
-    //             });
-
-    //             const result = await response.text();
-    //             console.log(result);
-
-    //             chrome.runtime.sendMessage({
-    //                 type: "SERVER_RESPONSE_RECEIVED",
-    //                 data: result
-    //             });
-    //         };
-    //     }
-    // });
-
     async function processAndSendImage(message) {
         const img = new Image();
         img.src = message.screenshot;
@@ -140,19 +89,38 @@ if (window.hasTextCopierLoaded) {
             ctx.drawImage(img, message.rect.x, message.rect.y, message.rect.width, message.rect.height, 0, 0, message.rect.width, message.rect.height);
 
             const cropped = canvas.toDataURL("image/png");
-            
-            const response = await fetch("http://localhost:3000/process_image", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ image: cropped })
-            });
 
-            const result = await response.text();
+            try {
+                const response = await fetch("http://localhost:3000/process_image", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ image: cropped })
+                });
+
+                const result = await response.text();
+
+                if (!response.ok) {
+                    console.log(response);
+
+                    chrome.runtime.sendMessage({
+                        type: "SERVER_RESPONSE_ERROR",
+                    });
+
+                } else {
+                    chrome.runtime.sendMessage({
+                        type: "SERVER_RESPONSE_RECEIVED",
+                        data: result
+                    });
+                }
+
+            } catch (error) {
+                console.log(error)
+
+                chrome.runtime.sendMessage({
+                    type: "SERVER_RESPONSE_ERROR",
+                });
+            }
             
-            chrome.runtime.sendMessage({
-                type: "SERVER_RESPONSE_RECEIVED",
-                data: result
-            });
         };
     }
 }

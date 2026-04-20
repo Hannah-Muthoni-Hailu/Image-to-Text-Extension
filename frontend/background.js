@@ -36,4 +36,13 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             data: message.data
         });
     }
+
+    if (message.type === "SERVER_RESPONSE_ERROR") {
+        await chrome.storage.local.set({ lastResult: "There was a server error. Please try again!" });
+
+        chrome.runtime.sendMessage({
+            type: "DISPLAY_RESULT",
+            data: message.data
+        });
+    }
 });
