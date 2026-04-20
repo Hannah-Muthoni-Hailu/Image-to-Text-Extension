@@ -91,7 +91,7 @@ if (window.hasTextCopierLoaded) {
             const cropped = canvas.toDataURL("image/png");
 
             try {
-                const response = await fetch("http://localhost:3000/process_image", {
+                const response = await fetch("https://image-to-text-extension.onrender.com/process_image", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ image: cropped })
