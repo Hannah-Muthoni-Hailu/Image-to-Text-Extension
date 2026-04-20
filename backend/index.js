@@ -40,7 +40,6 @@ app.post('/process_image', async (req, res) => {
         });
 
         const output = chatCompletion.choices[0].message.content;
-        console.log(output);
         res.send(output);
     } catch (err) {
         console.error(err);
