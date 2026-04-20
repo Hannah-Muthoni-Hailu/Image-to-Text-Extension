@@ -7,6 +7,6 @@ The backend is hosted on Render as a web service for your convenience. If you wo
 To use the extension:
 1. Clone this repository
 2. On your browser, visit chrome://extensions
-3. Enable developer mode by toggling the button at the top left corner <img src="frontent/images/Wireframe - 4.png" />
-4. Click the "Load unpacked" button <img src="frontent/images/Wireframe - 4(1).png" />
+3. Enable developer mode by toggling the button at the top left corner <img src="frontend/images/Wireframe - 4.png" />
+4. Click the "Load unpacked" button <img src="/frontend/images/Wireframe - 4 (1).png" />
 5. Select the frontend directory from the clone repository
