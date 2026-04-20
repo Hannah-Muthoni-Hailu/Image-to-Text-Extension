@@ -42,7 +42,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
         chrome.runtime.sendMessage({
             type: "DISPLAY_RESULT",
-            data: message.data
+            data: "There was a server error. Please try again!"
         });
     }
 });
